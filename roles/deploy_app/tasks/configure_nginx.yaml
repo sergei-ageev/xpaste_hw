@@ -1,0 +1,13 @@
+---
+- name: 'Copy config file to the host'
+  ansible.builtin.copy:
+    src: 'files/nginx.conf'
+    dest: '/etc/nginx/'
+    owner: 'root'
+    group: 'root'
+    mode: preserve
+
+- name: 'Reload NGINX'
+  ansible.builtin.service:
+    name: nginx.service
+    state: restarted

@@ -1,0 +1,9 @@
+---
+roles:
+  - src: geerlingguy.postgresql
+  - src: geerlingguy.ruby
+
+collections:
+  - name: community.postgresql
+  - name: nginxinc.nginx_core
+

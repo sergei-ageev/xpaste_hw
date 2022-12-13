@@ -1,0 +1,5 @@
+---
+postgres_users_no_log: false # включаем отображение паролей в консоле для отладки, само собой в продакшене это надо выключить
+postgresql_users:
+  - name: postgres
+    password: password

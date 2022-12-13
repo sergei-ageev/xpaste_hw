@@ -1,0 +1,75 @@
+---
+###############################
+###     INSTALL PACKETS     ###
+###############################
+
+- name: 'Install required packets'
+  ansible.builtin.yum:
+    name: '{{ item }}'
+    state: latest
+  loop:
+    - 'libxml2-devel.x86_64'
+    - '@Development tools'
+    - 'readline-devel'
+    - 'libyaml-devel'
+    - 'libffi-devel'
+    - 'openssl-devel'
+    - 'sqlite-devel'
+    - 'postgresql-devel'
+    - 'libxslt-devel.x86_64'
+
+###############################
+### INSTALL RUBY WITH RBENV ###
+###############################
+
+- name: 'Copy rbenv and ruby-build .tar.gz files to remote host'
+  ansible.builtin.copy:
+    src: '{{ item }}'
+    dest: '/home/{{ linux_user }}/'
+    owner: '{{ linux_user }}'
+    group: '{{ linux_user }}'
+    mode: preserve
+  loop:
+    - 'files/rbenv.tar.gz'
+    - 'files/ruby-build.tar.gz'
+
+- name: 'mkdir .rbenv for unarchiving rbenv.tar.gz'
+  ansible.builtin.file:
+    path: '/home/{{linux_user }}/.rbenv/'
+    state: directory
+    owner: '{{ linux_user }}'
+    group: '{{ linux_user }}'
+
+- name: 'Unarchive rbenv to ~/.rbenv'
+  ansible.builtin.unarchive:
+    #creates: '/home/{{linux_user }}/.rbenv/'
+    src: '/home/{{ linux_user }}/rbenv.tar.gz'
+    dest: '/home/{{linux_user }}/.rbenv/'
+    remote_src: yes
+
+- name: 'mkdir ruby-build for unarchiving ruby-build.tar.gz'
+  ansible.builtin.file:
+    path: '/home/{{ linux_user }}/.rbenv/plugins/ruby-build/'
+    state: directory
+    owner: '{{ linux_user }}'
+    group: '{{ linux_user }}'
+
+- name: 'Unarchive ruby-build to ~/.rbenv/plugins/ruby-build'
+  ansible.builtin.unarchive:
+    src: '/home/{{ linux_user }}/ruby-build.tar.gz'
+    dest: '/home/{{ linux_user }}/.rbenv/plugins/ruby-build/'
+    remote_src: yes
+
+- name: 'Configure shell to load rbenv and ruby-build after RELOAD'
+  ansible.builtin.lineinfile:
+    path: '/home/{{ linux_user }}/.bash_profile'
+    line: '{{ item }}'
+  loop:
+    - 'eval "$(~/.rbenv/libexec/rbenv init - bash)"'
+    - 'export PATH="$PATH:$HOME/.rbenv/bin/:$HOME/.rbenv/plugins/ruby-build/bin/"'
+
+- name: 'Install ruby'
+  become_user: '{{ linux_user }}'
+  become_method: sudo
+  ansible.builtin.script: 
+    cmd: 'files/install_ruby.sh'

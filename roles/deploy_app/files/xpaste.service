@@ -1,0 +1,13 @@
+[Unit]
+Description=Run xpaste program
+Requires=nginx.service
+After=postgresql.service
+
+[Service]
+User=vagrant
+WorkingDirectory=/home/vagrant/xpaste
+
+ExecStart=/home/vagrant/xpaste/start_app.sh
+
+[Install]
+WantedBy=multi-user.target

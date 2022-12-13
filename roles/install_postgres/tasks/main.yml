@@ -1,0 +1,38 @@
+---
+- name: 'Install and configure Postgres'
+  include_role:
+    name: geerlingguy.postgresql
+    tasks_from: '{{ item }}'
+  loop:
+    - variables         # Initialise variables
+    - setup-RedHat      # Setup Postgres
+    - initialize        # Initialize Postgres
+    - configure         # Configure Postgres
+
+- name: 'Start PostgreSQL server'
+  systemd:
+    name: '{{ postgresql_daemon }}'
+    state: started
+    enabled: yes
+
+- name: 'Add user'
+  include_role:
+    name: geerlingguy.postgresql
+    tasks_from: users
+
+- name: 'Add user for app'
+  become_user: postgres
+  become_method: sudo
+  community.postgresql.postgresql_user:
+    db: postgres
+    name: vagrant
+    password: password
+
+- name: 'Grant privileges for app user'
+  become_user: postgres
+  become_method: sudo
+  community.postgresql.postgresql_privs:
+    db: postgres
+    privs: ALL
+    role: vagrant
+    type: database

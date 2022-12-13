@@ -1,0 +1,11 @@
+---
+- name: 'Install ruby'
+  include: install_ruby.yaml
+
+- name: 'Configure NGINX'
+  include: configure_nginx.yaml
+
+- name: 'Install app'
+  include: install_app.yaml
+
+

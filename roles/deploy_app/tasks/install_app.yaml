@@ -1,0 +1,59 @@
+---
+###############################
+###         COPY APP        ###
+###############################
+
+- name: 'Copy app files to the host'
+  ansible.builtin.copy:
+    src: 'files/xpaste.tar.gz'
+    dest: '/home/{{ linux_user }}/'
+    owner: '{{ linux_user }}'
+    group: '{{ linux_user }}'
+    mode: preserve
+
+- name: 'mkdir xpaste for unarchiving xpaste.tar.gz'
+  ansible.builtin.file:
+    path: '/home/{{linux_user }}/xpaste/'
+    state: directory
+    owner: '{{ linux_user }}'
+    group: '{{ linux_user }}'
+
+- name: 'Unarchive xpaste to ~/xpaste'
+  ansible.builtin.unarchive:
+    #creates: '/home/{{linux_user }}/.rbenv/'
+    src: '/home/{{ linux_user }}/xpaste.tar.gz'
+    dest: '/home/{{linux_user }}/xpaste/'
+    remote_src: yes
+
+- name: 'Install app'
+  become_user: '{{ linux_user }}'
+  become_method: sudo
+  ansible.builtin.script:
+    cmd: 'files/install_app.sh'
+    chdir: '/home/{{ linux_user }}/xpaste'
+  register: result
+  ignore_errors: true           # Разобраться, как продолжить без игнорирования
+
+- name: 'Copy xpaste.service config to remote host'
+  ansible.builtin.copy:
+    src: 'files/xpaste.service'
+    dest: '/etc/systemd/system'
+    owner: 'root'
+    group: 'root'
+    mode: preserve
+
+- name: 'Copy starting script to host'
+  ansible.builtin.copy:
+    src: 'files/start_app.sh'
+    dest: '/home/{{ linux_user }}/xpaste'
+    owner: '{{ linux_user }}'
+    group: '{{ linux_user }}'
+    mode: preserve
+
+- name: 'start xpaste.service'
+  ansible.builtin.systemd:
+    state: started
+    daemon_reload: yes
+    name: xpaste.service
+    enabled: yes
+
